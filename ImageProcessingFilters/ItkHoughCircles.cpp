@@ -193,7 +193,11 @@ void ItkHoughCircles::execute()
   ImageProcessingConstants::DefaultImageType::Pointer outputImage = ITKUtilitiesType::CreateItkWrapperForDataPointer(m, attrMatName, m_NewCellArray);
 
   ImageProcessingConstants::DefaultSliceType::IndexType localIndex;
+#if ITK_VERSION_MAJOR < 5
   typedef itk::HoughTransform2DCirclesImageFilter<ImageProcessingConstants::DefaultPixelType, ImageProcessingConstants::FloatPixelType> HoughTransformFilterType;
+#else
+  using HoughTransformFilterType = itk::HoughTransform2DCirclesImageFilter<ImageProcessingConstants::DefaultPixelType, ImageProcessingConstants::FloatPixelType, ImageProcessingConstants::FloatPixelType>;
+#endif
   HoughTransformFilterType::Pointer houghFilter = HoughTransformFilterType::New();
   houghFilter->SetNumberOfCircles( m_NumberCircles );
   houghFilter->SetMinimumRadius( m_MinRadius );
@@ -243,9 +247,9 @@ void ItkHoughCircles::execute()
       for(double angle = 0; angle <= 2 * vnl_math::pi; angle += vnl_math::pi / 60.0 )
       {
         localIndex[0] = (long int)((*itCircles)->GetObjectToParentTransform()->GetOffset()[0]
-                                   + (*itCircles)->GetRadius()[0] * vcl_cos(angle));
+                                   + (*itCircles)->GetRadius()[0] * std::cos(angle));
         localIndex[1] = (long int)((*itCircles)->GetObjectToParentTransform()->GetOffset()[1]
-                                   + (*itCircles)->GetRadius()[0] * vcl_sin(angle));
+                                   + (*itCircles)->GetRadius()[0] * std::sin(angle));
         ImageProcessingConstants::DefaultSliceType::RegionType outputRegion = outputSlice->GetLargestPossibleRegion();
         if( outputRegion.IsInside( localIndex ) )
         {
